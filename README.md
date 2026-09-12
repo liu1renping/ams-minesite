@@ -73,6 +73,20 @@ scripts/seed.ts        # Sample minesite data
 | `npm run seed` | Reset and load sample data |
 | `npm run lint` | ESLint |
 
+## Deploy on Vercel
+
+1. Import the GitHub repo in [Vercel](https://vercel.com).
+2. In **Project Settings → Environment Variables**, add:
+
+   | Name | Value | Environments |
+   |------|-------|--------------|
+   | `MONGODB_URI` | your Atlas `mongodb+srv://...` URI | Production, Preview, Development |
+
+3. Redeploy (Deployments → … → Redeploy), or push a new commit.
+4. In Atlas **Network Access**, allow Vercel egress (for getting started you can allow `0.0.0.0/0`).
+
+`.env.local` is only for local development and is not uploaded to Vercel.
+
 ## Notes
 
 - Overlapping room bookings are rejected by the bookings API.
