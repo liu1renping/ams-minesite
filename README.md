@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AMS — Accommodation Management System
 
-## Getting Started
+Minesite accommodation management built with **Next.js 16**, **Tailwind CSS v4**, and **MongoDB** (Mongoose).
 
-First, run the development server:
+Track camps/villages, room inventory, residents (FIFO / contractors / visitors), and roster bookings with check-in / check-out.
+
+## Stack
+
+- Next.js 16 (App Router) + React 19 + TypeScript
+- Tailwind CSS v4
+- MongoDB via Mongoose 9
+
+## Prerequisites
+
+- Node.js **20.9+** (see `.nvmrc`)
+- A MongoDB instance (local or [Atlas](https://www.mongodb.com/atlas))
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+nvm use   # or: nvm use 20.20.2
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Setup
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env.local
+# edit MONGODB_URI if needed (default: mongodb://127.0.0.1:27017/ams)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+npm install
+npm run seed
+npm run dev
+```
 
-## Learn More
+Open [http://localhost:3000](http://localhost:3000).
 
-To learn more about Next.js, take a look at the following resources:
+## What's included
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Area | Description |
+|------|-------------|
+| Dashboard | Occupancy stats, camp summary, quick booking |
+| Camps | Village / camp registry |
+| Rooms | Block + room inventory and status |
+| Residents | Workforce / contractor directory |
+| Bookings | Allocations with check-in, check-out, cancel |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### API routes
 
-## Deploy on Vercel
+- `GET/POST /api/camps`
+- `GET/POST /api/rooms`
+- `GET/POST /api/residents`
+- `GET/POST /api/bookings`
+- `PATCH /api/bookings/:id`
+- `GET /api/stats`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project layout
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+  app/                 # Pages + API routes
+  components/          # UI shell and forms
+  lib/
+    db.ts              # Mongo connection (cached)
+    models.ts          # Camp, Room, Resident, Booking
+    queries.ts         # Dashboard aggregations
+scripts/seed.ts        # Sample minesite data
+```
+
+## Scripts
+
+| Command | Purpose |
+|---------|---------|
+| `npm run dev` | Start Next.js (Turbopack) |
+| `npm run build` | Production build |
+| `npm run seed` | Reset and load sample data |
+| `npm run lint` | ESLint |
+
+## Notes
+
+- Overlapping room bookings are rejected by the bookings API.
+- Checking in a booking marks the room as `occupied`; check-out / cancel returns it to `available` when no other active stay remains.

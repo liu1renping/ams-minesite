@@ -1,69 +1,194 @@
-import Image from "next/image";
+import { AppShell } from "@/components/AppShell";
+import { QuickBookingForm } from "@/components/QuickBookingForm";
+import { DataTable, EmptyState, Panel, StatCard, StatusPill } from "@/components/ui";
+import { connectDB } from "@/lib/db";
+import { Camp, Resident, Room } from "@/lib/models";
+import { getCampsWithOccupancy, getDashboardStats, getRecentBookings } from "@/lib/queries";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+function formatDate(value: Date | string) {
+  return new Date(value).toLocaleDateString("en-AU", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+}
+
+export default async function HomePage() {
+  let stats = {
+    camps: 0,
+    rooms: 0,
+    residents: 0,
+    activeBookings: 0,
+    available: 0,
+    occupied: 0,
+    maintenance: 0,
+    occupancyRate: 0,
+  };
+  let camps: Awaited<ReturnType<typeof getCampsWithOccupancy>> = [];
+  let bookings: Awaited<ReturnType<typeof getRecentBookings>> = [];
+  let formCamps: Array<{ _id: string; name: string }> = [];
+  let formRooms: Array<{
+    _id: string;
+    block: string;
+    roomNumber: string;
+    campId: string | { _id: string };
+  }> = [];
+  let formResidents: Array<{
+    _id: string;
+    firstName: string;
+    lastName: string;
+    employeeId: string;
+  }> = [];
+  let dbError: string | null = null;
+
+  try {
+    await connectDB();
+    const [nextStats, nextCamps, nextBookings, campDocs, roomDocs, residentDocs] =
+      await Promise.all([
+        getDashboardStats(),
+        getCampsWithOccupancy(),
+        getRecentBookings(),
+        Camp.find().select("name").sort({ name: 1 }).lean(),
+        Room.find().select("block roomNumber campId").sort({ block: 1, roomNumber: 1 }).lean(),
+        Resident.find({ active: true })
+          .select("firstName lastName employeeId")
+          .sort({ lastName: 1 })
+          .lean(),
+      ]);
+
+    stats = nextStats;
+    camps = nextCamps;
+    bookings = nextBookings;
+    formCamps = campDocs.map((c) => ({ _id: String(c._id), name: c.name }));
+    formRooms = roomDocs.map((r) => ({
+      _id: String(r._id),
+      block: r.block,
+      roomNumber: r.roomNumber,
+      campId: String(r.campId),
+    }));
+    formResidents = residentDocs.map((r) => ({
+      _id: String(r._id),
+      firstName: r.firstName,
+      lastName: r.lastName,
+      employeeId: r.employeeId,
+    }));
+  } catch (error) {
+    console.error(error);
+    dbError =
+      "Cannot reach MongoDB. Start a local MongoDB instance or set MONGODB_URI in .env.local, then run npm run seed.";
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <AppShell pathname="/">
+      {dbError ? (
+        <div className="mb-6 rounded-lg border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+          {dbError}
+        </div>
+      ) : null}
+
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatCard label="Active camps" value={stats.camps} />
+        <StatCard
+          label="Occupancy"
+          value={`${stats.occupancyRate}%`}
+          hint={`${stats.occupied} occupied · ${stats.available} available`}
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+        <StatCard label="Active residents" value={stats.residents} />
+        <StatCard
+          label="Checked in"
+          value={stats.activeBookings}
+          hint={`${stats.maintenance} rooms in maintenance`}
+        />
+      </div>
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <Panel title="Camp occupancy">
+            {camps.length === 0 ? (
+              <EmptyState message="No camps yet. Run npm run seed to load sample minesite data." />
+            ) : (
+              <DataTable headers={["Camp", "Code", "Rooms", "Occupied", "Available", "Status"]}>
+                {camps.map((camp) => (
+                  <tr key={String(camp._id)} className="text-stone-300">
+                    <td className="px-2 py-3 font-medium text-stone-100">{camp.name}</td>
+                    <td className="px-2 py-3 font-mono text-xs">{camp.code}</td>
+                    <td className="px-2 py-3">{camp.roomStats.total}</td>
+                    <td className="px-2 py-3">{camp.roomStats.occupied}</td>
+                    <td className="px-2 py-3">{camp.roomStats.available}</td>
+                    <td className="px-2 py-3">
+                      <StatusPill status={camp.status} />
+                    </td>
+                  </tr>
+                ))}
+              </DataTable>
+            )}
+          </Panel>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+
+        <div className="lg:col-span-2">
+          <Panel title="Quick booking">
+            <QuickBookingForm
+              camps={formCamps}
+              rooms={formRooms}
+              residents={formResidents}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+          </Panel>
         </div>
-      </main>
-    </div>
+      </div>
+
+      <div className="mt-6">
+        <Panel title="Recent bookings">
+          {bookings.length === 0 ? (
+            <EmptyState message="No bookings yet." />
+          ) : (
+            <DataTable
+              headers={["Resident", "Camp / Room", "Stay", "Status"]}
+            >
+              {bookings.map((booking) => {
+                const resident = booking.residentId as {
+                  firstName?: string;
+                  lastName?: string;
+                  employeeId?: string;
+                } | null;
+                const room = booking.roomId as {
+                  block?: string;
+                  roomNumber?: string;
+                } | null;
+                const camp = booking.campId as { name?: string; code?: string } | null;
+
+                return (
+                  <tr key={String(booking._id)} className="text-stone-300">
+                    <td className="px-2 py-3">
+                      <div className="font-medium text-stone-100">
+                        {resident
+                          ? `${resident.lastName}, ${resident.firstName}`
+                          : "Unknown"}
+                      </div>
+                      <div className="font-mono text-xs text-stone-500">
+                        {resident?.employeeId}
+                      </div>
+                    </td>
+                    <td className="px-2 py-3">
+                      <div>{camp?.name}</div>
+                      <div className="font-mono text-xs text-stone-500">
+                        {room ? `${room.block}-${room.roomNumber}` : "—"}
+                      </div>
+                    </td>
+                    <td className="px-2 py-3 text-xs">
+                      {formatDate(booking.checkIn)} → {formatDate(booking.checkOut)}
+                    </td>
+                    <td className="px-2 py-3">
+                      <StatusPill status={booking.status} />
+                    </td>
+                  </tr>
+                );
+              })}
+            </DataTable>
+          )}
+        </Panel>
+      </div>
+    </AppShell>
   );
 }
