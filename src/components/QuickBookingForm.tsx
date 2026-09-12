@@ -3,6 +3,13 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+function toDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export function QuickBookingForm({
   camps,
   rooms,
@@ -16,6 +23,12 @@ export function QuickBookingForm({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [campId, setCampId] = useState(camps[0]?._id ?? "");
+
+  const today = new Date();
+  const defaultCheckIn = toDateInputValue(today);
+  const defaultCheckOut = toDateInputValue(
+    new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7),
+  );
 
   const filteredRooms = rooms.filter((room) => {
     const id = typeof room.campId === "string" ? room.campId : room.campId?._id;
@@ -115,7 +128,8 @@ export function QuickBookingForm({
           type="date"
           name="checkIn"
           required
-          className="rounded-md border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100"
+          defaultValue={defaultCheckIn}
+          className="date-input rounded-md border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100"
         />
       </label>
 
@@ -125,7 +139,9 @@ export function QuickBookingForm({
           type="date"
           name="checkOut"
           required
-          className="rounded-md border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100"
+          defaultValue={defaultCheckOut}
+          min={defaultCheckIn}
+          className="date-input rounded-md border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100"
         />
       </label>
 

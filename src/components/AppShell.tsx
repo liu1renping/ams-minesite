@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const nav = [
@@ -23,10 +24,20 @@ export function AppShell({
             <p className="font-mono text-xs tracking-[0.25em] text-amber-400/90 uppercase">
               Minesite Operations
             </p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
-              AMS
-            </h1>
-            <p className="mt-1 max-w-xl text-sm text-stone-400">
+            <Link href="/" className="mt-2 inline-flex items-center gap-3">
+              <Image
+                src="/icon.png"
+                alt="AMS"
+                width={48}
+                height={48}
+                priority
+                className="h-12 w-12 rounded-xl shadow-[0_0_0_1px_rgba(245,158,11,0.25)]"
+              />
+              <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
+                AMS
+              </h1>
+            </Link>
+            <p className="mt-2 max-w-xl text-sm text-stone-400">
               Accommodation Management System — camps, rooms, residents, and roster allocations.
             </p>
           </div>

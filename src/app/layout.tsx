@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "AMS — Accommodation Management System",
   description: "Minesite accommodation management for camps, rooms, residents, and bookings.",
+  applicationName: "AMS",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
