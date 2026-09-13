@@ -17,7 +17,29 @@ export async function POST(request: Request) {
   try {
     await connectDB();
     const body = await request.json();
-    const camp = await Camp.create(body);
+
+    const required = ["name", "code", "siteName", "location", "capacity"] as const;
+    for (const field of required) {
+      if (body[field] === undefined || body[field] === null || String(body[field]).trim() === "") {
+        return jsonError(`${field} is required`);
+      }
+    }
+
+    const capacity = Number(body.capacity);
+    if (Number.isNaN(capacity) || capacity < 0) {
+      return jsonError("capacity must be a non-negative number");
+    }
+
+    const camp = await Camp.create({
+      name: String(body.name).trim(),
+      code: String(body.code).trim().toUpperCase(),
+      siteName: String(body.siteName).trim(),
+      location: String(body.location).trim(),
+      capacity,
+      status: body.status ?? "active",
+      notes: body.notes ?? "",
+    });
+
     return jsonOk(serialize(camp), { status: 201 });
   } catch (error) {
     console.error(error);

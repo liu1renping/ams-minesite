@@ -9,8 +9,12 @@ export function StatCard({
 }) {
   return (
     <div className="rounded-xl border border-emerald-900/50 bg-stone-950/50 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
-      <p className="text-xs font-medium tracking-wide text-stone-400 uppercase">{label}</p>
-      <p className="mt-2 font-mono text-3xl font-semibold text-stone-50">{value}</p>
+      <p className="text-xs font-medium tracking-wide text-stone-400 uppercase">
+        {label}
+      </p>
+      <p className="mt-2 font-mono text-3xl font-semibold text-stone-50">
+        {value}
+      </p>
       {hint ? <p className="mt-2 text-xs text-stone-500">{hint}</p> : null}
     </div>
   );
@@ -28,7 +32,9 @@ export function Panel({
   return (
     <section className="rounded-xl border border-emerald-900/50 bg-stone-950/40">
       <div className="flex items-center justify-between border-b border-emerald-900/40 px-5 py-4">
-        <h2 className="text-sm font-medium tracking-wide text-stone-200 uppercase">{title}</h2>
+        <h2 className="text-sm font-medium tracking-wide text-stone-200 uppercase">
+          {title}
+        </h2>
         {action}
       </div>
       <div className="p-5">{children}</div>

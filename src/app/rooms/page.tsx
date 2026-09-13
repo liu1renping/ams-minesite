@@ -1,50 +1,47 @@
 import { AppShell } from "@/components/AppShell";
-import { DataTable, EmptyState, Panel, StatusPill } from "@/components/ui";
+import {
+  RoomsManager,
+  type CampOption,
+  type RoomRecord,
+} from "@/components/RoomsManager";
 import { connectDB } from "@/lib/db";
-import { Room } from "@/lib/models";
+import { Camp, Room } from "@/lib/models";
 
 export const dynamic = "force-dynamic";
 
 export default async function RoomsPage() {
   await connectDB();
-  const rooms = await Room.find()
-    .populate("campId", "name code")
-    .sort({ block: 1, roomNumber: 1 })
-    .lean();
+
+  const [roomDocs, campDocs] = await Promise.all([
+    Room.find().populate("campId", "name code").sort({ block: 1, roomNumber: 1 }).lean(),
+    Camp.find().select("name code").sort({ name: 1 }).lean(),
+  ]);
+
+  const camps: CampOption[] = campDocs.map((camp) => ({
+    _id: String(camp._id),
+    name: camp.name,
+    code: camp.code,
+  }));
+
+  const rooms: RoomRecord[] = roomDocs.map((room) => {
+    const camp = room.campId as { _id?: unknown; name?: string; code?: string } | null;
+    return {
+      _id: String(room._id),
+      campId: camp?._id ? String(camp._id) : String(room.campId),
+      campName: camp?.name ?? "Unknown",
+      campCode: camp?.code ?? "—",
+      block: room.block,
+      roomNumber: room.roomNumber,
+      type: room.type,
+      beds: room.beds,
+      status: room.status,
+      amenities: room.amenities ?? [],
+    };
+  });
 
   return (
     <AppShell pathname="/rooms">
-      <Panel title="Room inventory">
-        {rooms.length === 0 ? (
-          <EmptyState message="No rooms found. Run npm run seed." />
-        ) : (
-          <DataTable
-            headers={["Camp", "Block", "Room", "Type", "Beds", "Status", "Amenities"]}
-          >
-            {rooms.map((room) => {
-              const camp = room.campId as { name?: string; code?: string } | null;
-              return (
-                <tr key={String(room._id)} className="text-stone-300">
-                  <td className="px-2 py-3">
-                    <div className="font-medium text-stone-100">{camp?.name}</div>
-                    <div className="font-mono text-xs text-stone-500">{camp?.code}</div>
-                  </td>
-                  <td className="px-2 py-3 font-mono text-xs">{room.block}</td>
-                  <td className="px-2 py-3 font-mono text-xs">{room.roomNumber}</td>
-                  <td className="px-2 py-3 capitalize">{room.type}</td>
-                  <td className="px-2 py-3">{room.beds}</td>
-                  <td className="px-2 py-3">
-                    <StatusPill status={room.status} />
-                  </td>
-                  <td className="px-2 py-3 text-xs text-stone-400">
-                    {(room.amenities ?? []).join(", ") || "—"}
-                  </td>
-                </tr>
-              );
-            })}
-          </DataTable>
-        )}
-      </Panel>
+      <RoomsManager rooms={rooms} camps={camps} />
     </AppShell>
   );
 }

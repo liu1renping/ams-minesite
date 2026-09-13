@@ -45,7 +45,9 @@ Open [http://localhost:3000](http://localhost:3000).
 ### API routes
 
 - `GET/POST /api/camps`
+- `GET/PATCH/DELETE /api/camps/:id`
 - `GET/POST /api/rooms`
+- `GET/PATCH/DELETE /api/rooms/:id`
 - `GET/POST /api/residents`
 - `GET/PATCH/DELETE /api/residents/:id`
 - `GET/POST /api/bookings`

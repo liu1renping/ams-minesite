@@ -9,6 +9,9 @@ export const ROOM_STATUSES = [
 ] as const;
 export type RoomStatus = (typeof ROOM_STATUSES)[number];
 
+export const CAMP_STATUSES = ["active", "inactive", "commissioning"] as const;
+export type CampStatus = (typeof CAMP_STATUSES)[number];
+
 export const RESIDENT_ROLES = [
   "operator",
   "supervisor",
