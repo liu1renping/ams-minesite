@@ -66,10 +66,18 @@ export function QuickBookingForm({
     router.refresh();
   }
 
-  if (!camps.length || !residents.length || !rooms.length) {
+  if (!camps.length || !residents.length) {
     return (
       <p className="text-sm text-stone-500">
         Seed sample data first (`npm run seed`) to create bookings.
+      </p>
+    );
+  }
+
+  if (!rooms.length) {
+    return (
+      <p className="text-sm text-stone-500">
+        No available rooms to book. Free a room or add one on the Rooms page.
       </p>
     );
   }
@@ -99,11 +107,17 @@ export function QuickBookingForm({
           required
           className="rounded-md border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100"
         >
-          {filteredRooms.map((room) => (
-            <option key={room._id} value={room._id}>
-              {room.block}-{room.roomNumber}
+          {filteredRooms.length === 0 ? (
+            <option value="" disabled>
+              No available rooms in this camp
             </option>
-          ))}
+          ) : (
+            filteredRooms.map((room) => (
+              <option key={room._id} value={room._id}>
+                {room.block}-{room.roomNumber}
+              </option>
+            ))
+          )}
         </select>
       </label>
 

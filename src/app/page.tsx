@@ -51,7 +51,10 @@ export default async function HomePage() {
         getCampsWithOccupancy(),
         getRecentBookings(),
         Camp.find().select("name").sort({ name: 1 }).lean(),
-        Room.find().select("block roomNumber campId").sort({ block: 1, roomNumber: 1 }).lean(),
+        Room.find({ status: "available" })
+          .select("block roomNumber campId")
+          .sort({ block: 1, roomNumber: 1 })
+          .lean(),
         Resident.find({ active: true })
           .select("firstName lastName employeeId")
           .sort({ lastName: 1 })
