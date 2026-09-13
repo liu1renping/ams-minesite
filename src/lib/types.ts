@@ -36,21 +36,19 @@ export const APPLICATION_TYPES = ["single", "group"] as const;
 export type ApplicationType = (typeof APPLICATION_TYPES)[number];
 
 export const DEPARTMENTS = [
-  "Operations",
-  "Maintenance",
   "HSE",
-  "Engineering",
-  "HR",
+  "Operation",
+  "Processing",
+  "Maintenance",
   "Finance",
-  "Other",
+  "HR",
+  "IT",
 ] as const;
 
 export const VISIT_REASONS = [
   "Site Tour",
-  "Meeting",
-  "Audit",
-  "Training",
-  "Contractor Work",
+  "Business Meeting",
+  "Project",
   "Inspection",
   "Other",
 ] as const;
