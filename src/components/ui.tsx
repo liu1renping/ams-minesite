@@ -79,17 +79,24 @@ export function EmptyState({ message }: { message: string }) {
 export function DataTable({
   headers,
   children,
+  minWidthClass = "min-w-[720px]",
 }: {
   headers: string[];
   children: React.ReactNode;
+  minWidthClass?: string;
 }) {
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[640px] text-left text-sm">
+      <table className={`w-full ${minWidthClass} table-auto text-left text-sm`}>
         <thead>
           <tr className="border-b border-emerald-900/40 text-xs tracking-wide text-stone-500 uppercase">
             {headers.map((header) => (
-              <th key={header} className="px-2 py-3 font-medium">
+              <th
+                key={header}
+                className={`px-2 py-3 font-medium ${
+                  header === "Actions" ? "w-0 whitespace-nowrap" : ""
+                }`}
+              >
                 {header}
               </th>
             ))}
