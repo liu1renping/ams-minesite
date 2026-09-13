@@ -18,8 +18,8 @@ export default async function BookingsPage() {
   await connectDB();
   const bookings = await Booking.find()
     .populate("residentId", "firstName lastName employeeId company")
-    .populate("roomId", "block roomNumber type")
-    .populate("campId", "name code")
+    .populate("bedroomId", "label type")
+    .populate("houseId", "name code")
     .sort({ checkIn: -1 })
     .lean();
 
@@ -27,10 +27,10 @@ export default async function BookingsPage() {
     <AppShell pathname="/bookings">
       <Panel title="Bookings & allocations">
         {bookings.length === 0 ? (
-          <EmptyState message="No bookings found. Create one from the dashboard or run npm run seed." />
+          <EmptyState message="No bookings found." />
         ) : (
           <DataTable
-            headers={["Resident", "Camp / Room", "Stay", "Purpose", "Status", "Actions"]}
+            headers={["Resident", "House / Bedroom", "Stay", "Purpose", "Status", "Actions"]}
           >
             {bookings.map((booking) => {
               const resident = booking.residentId as {
@@ -39,12 +39,11 @@ export default async function BookingsPage() {
                 employeeId?: string;
                 company?: string;
               } | null;
-              const room = booking.roomId as {
-                block?: string;
-                roomNumber?: string;
+              const bedroom = booking.bedroomId as {
+                label?: string;
                 type?: string;
               } | null;
-              const camp = booking.campId as { name?: string; code?: string } | null;
+              const house = booking.houseId as { name?: string; code?: string } | null;
 
               return (
                 <tr key={String(booking._id)} className="text-stone-300">
@@ -59,9 +58,9 @@ export default async function BookingsPage() {
                     </div>
                   </td>
                   <td className="px-2 py-3">
-                    <div>{camp?.name}</div>
+                    <div>{house?.name}</div>
                     <div className="font-mono text-xs text-stone-500">
-                      {room ? `${room.block}-${room.roomNumber} · ${room.type}` : "—"}
+                      {bedroom ? `${bedroom.label} · ${bedroom.type}` : "—"}
                     </div>
                   </td>
                   <td className="px-2 py-3 text-xs">

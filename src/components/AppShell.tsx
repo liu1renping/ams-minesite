@@ -6,8 +6,8 @@ const nav = [
   { href: "/gm-approval", label: "GM Approval" },
   { href: "/accommodation", label: "Accommodation" },
   { href: "/", label: "Dashboard" },
-  { href: "/camps", label: "Camps" },
-  { href: "/rooms", label: "Rooms" },
+  { href: "/houses", label: "Houses" },
+  { href: "/bedrooms", label: "Bedrooms" },
   { href: "/residents", label: "Residents" },
   { href: "/bookings", label: "Bookings" },
 ];
@@ -41,7 +41,7 @@ export function AppShell({
               </h1>
             </Link>
             <p className="mt-2 max-w-xl text-sm text-stone-400">
-              Accommodation Management System — camps, rooms, residents, and roster allocations.
+              Accommodation Management System — houses, bedrooms, visitors, and allocations.
             </p>
           </div>
           <nav className="flex flex-wrap gap-1">

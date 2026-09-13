@@ -9,41 +9,40 @@ import {
 } from "@/lib/applications";
 import { DataTable, EmptyState, Panel, StatusPill } from "@/components/ui";
 
-type CampOption = { _id: string; name: string; code: string };
-type RoomOption = {
+type HouseOption = { _id: string; name: string; code: string };
+type BedroomOption = {
   _id: string;
-  campId: string;
-  block: string;
-  roomNumber: string;
+  houseId: string;
+  label: string;
   type: string;
 };
 
 export function AccommodationPanel({
   applications,
-  camps,
-  rooms,
+  houses,
+  bedrooms,
 }: {
   applications: ApplicationRecord[];
-  camps: CampOption[];
-  rooms: RoomOption[];
+  houses: HouseOption[];
+  bedrooms: BedroomOption[];
 }) {
   const router = useRouter();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [campByApp, setCampByApp] = useState<Record<string, string>>({});
-  const [roomByApp, setRoomByApp] = useState<Record<string, string>>({});
+  const [houseByApp, setHouseByApp] = useState<Record<string, string>>({});
+  const [bedroomByApp, setBedroomByApp] = useState<Record<string, string>>({});
 
-  const roomsByCamp = useMemo(() => {
-    const map: Record<string, RoomOption[]> = {};
-    for (const room of rooms) {
-      map[room.campId] ??= [];
-      map[room.campId].push(room);
+  const bedroomsByHouse = useMemo(() => {
+    const map: Record<string, BedroomOption[]> = {};
+    for (const bedroom of bedrooms) {
+      map[bedroom.houseId] ??= [];
+      map[bedroom.houseId].push(bedroom);
     }
     return map;
-  }, [rooms]);
+  }, [bedrooms]);
 
-  function campIdFor(appId: string) {
-    return campByApp[appId] || camps[0]?._id || "";
+  function houseIdFor(appId: string) {
+    return houseByApp[appId] || houses[0]?._id || "";
   }
 
   async function allocate(app: ApplicationRecord) {
@@ -53,14 +52,14 @@ export function AccommodationPanel({
     const payload = app.accommodationRequired
       ? {
           action: "allocate",
-          campId: campIdFor(app._id),
-          roomId: roomByApp[app._id],
+          houseId: houseIdFor(app._id),
+          bedroomId: bedroomByApp[app._id],
         }
       : { action: "allocate" };
 
-    if (app.accommodationRequired && (!payload.campId || !payload.roomId)) {
+    if (app.accommodationRequired && (!payload.houseId || !payload.bedroomId)) {
       setPendingId(null);
-      setError("Select a camp and room before allocating.");
+      setError("Select a house and bedroom before allocating.");
       return;
     }
 
@@ -88,15 +87,15 @@ export function AccommodationPanel({
           Accommodation
         </h2>
         <p className="text-sm text-stone-400">
-          Allocate rooms for GM-approved visitor applications.
+          Allocate house bedrooms independently for GM-approved visitor applications.
         </p>
       </div>
 
-      <Panel title="Approved — awaiting allocation">
+      <Panel title="Approved — awaiting bedroom allocation">
         {error ? <p className="mb-4 text-sm text-rose-300">{error}</p> : null}
 
         {applications.length === 0 ? (
-          <EmptyState message="No approved applications waiting for room allocation." />
+          <EmptyState message="No approved applications waiting for bedroom allocation." />
         ) : (
           <DataTable
             minWidthClass="min-w-[1100px]"
@@ -105,14 +104,14 @@ export function AccommodationPanel({
               "Host",
               "Stay",
               "Needs room",
-              "Allocate",
+              "Allocate bedroom",
               "Status",
               "Action",
             ]}
           >
             {applications.map((app) => {
-              const selectedCamp = campIdFor(app._id);
-              const campRooms = roomsByCamp[selectedCamp] ?? [];
+              const selectedHouse = houseIdFor(app._id);
+              const houseBedrooms = bedroomsByHouse[selectedHouse] ?? [];
 
               return (
                 <tr key={app._id} className="text-stone-300">
@@ -138,34 +137,34 @@ export function AccommodationPanel({
                     {app.accommodationRequired ? (
                       <div className="flex min-w-[220px] flex-col gap-2">
                         <select
-                          value={selectedCamp}
+                          value={selectedHouse}
                           onChange={(e) => {
-                            const nextCamp = e.target.value;
-                            setCampByApp((prev) => ({ ...prev, [app._id]: nextCamp }));
-                            setRoomByApp((prev) => ({ ...prev, [app._id]: "" }));
+                            const nextHouse = e.target.value;
+                            setHouseByApp((prev) => ({ ...prev, [app._id]: nextHouse }));
+                            setBedroomByApp((prev) => ({ ...prev, [app._id]: "" }));
                           }}
                           className="rounded-md border border-stone-700 bg-stone-900 px-2 py-1.5 text-xs text-stone-100"
                         >
-                          {camps.map((camp) => (
-                            <option key={camp._id} value={camp._id}>
-                              {camp.name}
+                          {houses.map((house) => (
+                            <option key={house._id} value={house._id}>
+                              {house.name}
                             </option>
                           ))}
                         </select>
                         <select
-                          value={roomByApp[app._id] ?? ""}
+                          value={bedroomByApp[app._id] ?? ""}
                           onChange={(e) =>
-                            setRoomByApp((prev) => ({
+                            setBedroomByApp((prev) => ({
                               ...prev,
                               [app._id]: e.target.value,
                             }))
                           }
                           className="rounded-md border border-stone-700 bg-stone-900 px-2 py-1.5 text-xs text-stone-100"
                         >
-                          <option value="">Select room</option>
-                          {campRooms.map((room) => (
-                            <option key={room._id} value={room._id}>
-                              {room.block}-{room.roomNumber} ({room.type})
+                          <option value="">Select bedroom</option>
+                          {houseBedrooms.map((bedroom) => (
+                            <option key={bedroom._id} value={bedroom._id}>
+                              {bedroom.label} ({bedroom.type})
                             </option>
                           ))}
                         </select>
@@ -180,7 +179,7 @@ export function AccommodationPanel({
                   <td className="w-0 px-2 py-3 align-middle">
                     <button
                       type="button"
-                      disabled={pendingId === app._id || camps.length === 0}
+                      disabled={pendingId === app._id || houses.length === 0}
                       onClick={() => allocate(app)}
                       className="shrink-0 rounded-md bg-amber-500 px-2.5 py-1 text-xs font-medium text-stone-950 hover:bg-amber-400 disabled:opacity-50"
                     >

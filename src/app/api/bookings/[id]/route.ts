@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db";
 import { jsonError, jsonOk, serialize } from "@/lib/api";
-import { Booking, Room } from "@/lib/models";
+import { Bedroom, Booking } from "@/lib/models";
 import { Types } from "mongoose";
 
 type Params = { params: Promise<{ id: string }> };
@@ -25,17 +25,17 @@ export async function PATCH(request: Request, { params }: Params) {
     }
 
     if (body.status === "checked_in") {
-      await Room.findByIdAndUpdate(booking.roomId, { status: "occupied" });
+      await Bedroom.findByIdAndUpdate(booking.bedroomId, { status: "occupied" });
     }
 
     if (body.status === "checked_out" || body.status === "cancelled") {
       const stillOccupied = await Booking.exists({
-        roomId: booking.roomId,
+        bedroomId: booking.bedroomId,
         status: "checked_in",
         _id: { $ne: booking._id },
       });
       if (!stillOccupied) {
-        await Room.findByIdAndUpdate(booking.roomId, { status: "available" });
+        await Bedroom.findByIdAndUpdate(booking.bedroomId, { status: "available" });
       }
     }
 

@@ -16,70 +16,105 @@ async function seed() {
   if (!db) throw new Error("No database connection");
 
   await Promise.all([
+    db.collection("houses").deleteMany({}),
+    db.collection("bedrooms").deleteMany({}),
     db.collection("camps").deleteMany({}),
     db.collection("rooms").deleteMany({}),
     db.collection("residents").deleteMany({}),
     db.collection("bookings").deleteMany({}),
+    db.collection("visitorapplications").deleteMany({}),
   ]);
 
-  const camps = await db.collection("camps").insertMany([
+  const houses = await db.collection("houses").insertMany([
     {
-      name: "Main Village",
-      code: "MV01",
-      siteName: "Iron Ridge Mine",
-      location: "Pilbara, WA",
-      capacity: 420,
+      name: "Riverbend House",
+      code: "RB01",
+      address: "12 Mine Access Rd",
+      suburb: "Newman, WA",
       status: "active",
-      notes: "Primary FIFO village with mess and wet mess.",
+      notes: "4-bedroom staff house near operations gate.",
       createdAt: new Date(),
       updatedAt: new Date(),
     },
     {
-      name: "Exploration Camp",
-      code: "EX02",
-      siteName: "Iron Ridge Mine",
-      location: "North Lease",
-      capacity: 80,
+      name: "Acacia Cottage",
+      code: "AC02",
+      address: "8 Sandplain Close",
+      suburb: "Newman, WA",
       status: "active",
-      notes: "Short-stay contractor camp.",
+      notes: "Quiet 3-bedroom cottage for visitors.",
       createdAt: new Date(),
       updatedAt: new Date(),
     },
   ]);
 
-  const mainVillageId = camps.insertedIds[0];
-  const explorationId = camps.insertedIds[1];
+  const riverbendId = houses.insertedIds[0];
+  const acaciaId = houses.insertedIds[1];
 
-  const roomDocs = [];
-  for (let i = 1; i <= 12; i++) {
-    roomDocs.push({
-      campId: mainVillageId,
-      block: i <= 6 ? "A" : "B",
-      roomNumber: String(i).padStart(2, "0"),
-      type: i % 5 === 0 ? "ensuite" : i % 3 === 0 ? "twin" : "single",
-      beds: i % 3 === 0 ? 2 : 1,
-      status: i % 7 === 0 ? "maintenance" : i % 4 === 0 ? "occupied" : "available",
-      amenities: i % 5 === 0 ? ["ensuite", "desk", "AC"] : ["shared bathroom", "AC"],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-  }
-
-  for (let i = 1; i <= 6; i++) {
-    roomDocs.push({
-      campId: explorationId,
-      block: "N",
-      roomNumber: String(i).padStart(2, "0"),
-      type: i === 6 ? "accessible" : "single",
+  const bedroomDocs = [
+    {
+      houseId: riverbendId,
+      label: "Master Bedroom",
+      type: "ensuite",
       beds: 1,
-      status: i <= 2 ? "occupied" : "available",
-      amenities: ["donga", "AC"],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
-  }
+      status: "available",
+      amenities: ["ensuite", "queen bed", "AC"],
+    },
+    {
+      houseId: riverbendId,
+      label: "Bedroom 2",
+      type: "double",
+      beds: 1,
+      status: "available",
+      amenities: ["double bed", "AC"],
+    },
+    {
+      houseId: riverbendId,
+      label: "Bedroom 3",
+      type: "twin",
+      beds: 2,
+      status: "occupied",
+      amenities: ["twin beds", "AC"],
+    },
+    {
+      houseId: riverbendId,
+      label: "Bedroom 4",
+      type: "single",
+      beds: 1,
+      status: "available",
+      amenities: ["single bed", "desk"],
+    },
+    {
+      houseId: acaciaId,
+      label: "Master Bedroom",
+      type: "ensuite",
+      beds: 1,
+      status: "available",
+      amenities: ["ensuite", "queen bed"],
+    },
+    {
+      houseId: acaciaId,
+      label: "Bedroom 2",
+      type: "single",
+      beds: 1,
+      status: "available",
+      amenities: ["single bed"],
+    },
+    {
+      houseId: acaciaId,
+      label: "Bedroom 3",
+      type: "twin",
+      beds: 2,
+      status: "maintenance",
+      amenities: ["twin beds"],
+    },
+  ].map((doc) => ({
+    ...doc,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }));
 
-  const rooms = await db.collection("rooms").insertMany(roomDocs);
+  const bedrooms = await db.collection("bedrooms").insertMany(bedroomDocs);
 
   const residents = await db.collection("residents").insertMany([
     {
@@ -110,86 +145,32 @@ async function seed() {
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-    {
-      employeeId: "CTR-2201",
-      firstName: "Priya",
-      lastName: "Singh",
-      company: "Northstar Contractors",
-      role: "contractor",
-      roster: "14/7",
-      phone: "0400 222 201",
-      email: "priya.singh@example.com",
-      emergencyContact: "R. Singh 0400 000 333",
-      active: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      employeeId: "VIS-010",
-      firstName: "Tom",
-      lastName: "Ellis",
-      company: "Safety Audit Co",
-      role: "visitor",
-      roster: "adhoc",
-      phone: "0400 333 010",
-      email: "tom.ellis@example.com",
-      emergencyContact: "",
-      active: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
   ]);
 
   const today = new Date();
   const inSeven = new Date(today);
   inSeven.setDate(today.getDate() + 7);
-  const inFourteen = new Date(today);
-  inFourteen.setDate(today.getDate() + 14);
 
   await db.collection("bookings").insertMany([
     {
       residentId: residents.insertedIds[0],
-      roomId: rooms.insertedIds[3],
-      campId: mainVillageId,
+      bedroomId: bedrooms.insertedIds[2],
+      houseId: riverbendId,
       checkIn: today,
       checkOut: inSeven,
-      status: "checked_in",
-      purpose: "roster",
-      notes: "Swing A",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-    {
-      residentId: residents.insertedIds[1],
-      roomId: rooms.insertedIds[7],
-      campId: mainVillageId,
-      checkIn: today,
-      checkOut: inFourteen,
       status: "checked_in",
       purpose: "roster",
       notes: "",
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-    {
-      residentId: residents.insertedIds[2],
-      roomId: rooms.insertedIds[12],
-      campId: explorationId,
-      checkIn: today,
-      checkOut: inSeven,
-      status: "reserved",
-      purpose: "shutdown",
-      notes: "Planned maintenance crew",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
   ]);
 
   console.log("Seeded AMS sample data:");
-  console.log(`  camps: ${Object.keys(camps.insertedIds).length}`);
-  console.log(`  rooms: ${Object.keys(rooms.insertedIds).length}`);
+  console.log(`  houses: ${Object.keys(houses.insertedIds).length}`);
+  console.log(`  bedrooms: ${Object.keys(bedrooms.insertedIds).length}`);
   console.log(`  residents: ${Object.keys(residents.insertedIds).length}`);
-  console.log("  bookings: 3");
+  console.log("  bookings: 1");
 
   await mongoose.disconnect();
 }

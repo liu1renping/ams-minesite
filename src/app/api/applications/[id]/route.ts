@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db";
 import { jsonError, jsonOk, serialize } from "@/lib/api";
-import { Booking, Camp, Resident, Room, VisitorApplication } from "@/lib/models";
+import { Bedroom, Booking, House, Resident, VisitorApplication } from "@/lib/models";
 import { APPLICATION_STATUSES } from "@/lib/types";
 import { Types } from "mongoose";
 
@@ -61,33 +61,33 @@ export async function PATCH(request: Request, { params }: Params) {
         return jsonOk(serialize(application));
       }
 
-      const campId = String(body.campId ?? "");
-      const roomId = String(body.roomId ?? "");
+      const houseId = String(body.houseId ?? "");
+      const bedroomId = String(body.bedroomId ?? "");
 
-      if (!Types.ObjectId.isValid(campId) || !Types.ObjectId.isValid(roomId)) {
-        return jsonError("Valid campId and roomId are required");
+      if (!Types.ObjectId.isValid(houseId) || !Types.ObjectId.isValid(bedroomId)) {
+        return jsonError("Valid houseId and bedroomId are required");
       }
 
-      const [camp, room] = await Promise.all([
-        Camp.findById(campId),
-        Room.findById(roomId),
+      const [house, bedroom] = await Promise.all([
+        House.findById(houseId),
+        Bedroom.findById(bedroomId),
       ]);
 
-      if (!camp) return jsonError("Camp not found", 404);
-      if (!room) return jsonError("Room not found", 404);
-      if (String(room.campId) !== campId) {
-        return jsonError("Room does not belong to the selected camp");
+      if (!house) return jsonError("House not found", 404);
+      if (!bedroom) return jsonError("Bedroom not found", 404);
+      if (String(bedroom.houseId) !== houseId) {
+        return jsonError("Bedroom does not belong to the selected house");
       }
 
       const overlap = await Booking.findOne({
-        roomId,
+        bedroomId,
         status: { $in: ["reserved", "checked_in"] },
         checkIn: { $lt: application.departure },
         checkOut: { $gt: application.arrival },
       });
 
       if (overlap) {
-        return jsonError("Room already booked for overlapping dates", 409);
+        return jsonError("Bedroom already booked for overlapping dates", 409);
       }
 
       const primary = application.travellers[0];
@@ -121,8 +121,8 @@ export async function PATCH(request: Request, { params }: Params) {
 
       await Booking.create({
         residentId: resident._id,
-        roomId: room._id,
-        campId: camp._id,
+        bedroomId: bedroom._id,
+        houseId: house._id,
         checkIn: application.arrival,
         checkOut: application.departure,
         status: "reserved",
@@ -134,14 +134,14 @@ export async function PATCH(request: Request, { params }: Params) {
         application._id,
         {
           status: "allocated",
-          campId: camp._id,
-          roomId: room._id,
+          houseId: house._id,
+          bedroomId: bedroom._id,
           allocatedAt: new Date(),
         },
         { new: true },
       )
-        .populate("campId", "name code")
-        .populate("roomId", "block roomNumber type");
+        .populate("houseId", "name code address")
+        .populate("bedroomId", "label type");
 
       return jsonOk(serialize(updated));
     }

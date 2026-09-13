@@ -20,8 +20,8 @@ export type ApplicationRecord = {
   carRego: string;
   status: string;
   gmNotes?: string;
-  campName?: string;
-  roomLabel?: string;
+  houseName?: string;
+  bedroomLabel?: string;
   createdAt?: string;
 };
 

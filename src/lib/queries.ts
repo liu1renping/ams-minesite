@@ -1,31 +1,31 @@
 import { connectDB } from "@/lib/db";
-import { Booking, Camp, Resident, Room } from "@/lib/models";
+import { Booking, Bedroom, House, Resident } from "@/lib/models";
 
 export async function getDashboardStats() {
   await connectDB();
 
-  const [camps, rooms, residents, activeBookings, roomStatus] = await Promise.all([
-    Camp.countDocuments({ status: "active" }),
-    Room.countDocuments(),
+  const [houses, bedrooms, residents, activeBookings, bedroomStatus] = await Promise.all([
+    House.countDocuments({ status: "active" }),
+    Bedroom.countDocuments(),
     Resident.countDocuments({ active: true }),
     Booking.countDocuments({ status: "checked_in" }),
-    Room.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
+    Bedroom.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
   ]);
 
-  const statusMap = Object.fromEntries(roomStatus.map((s) => [s._id, s.count]));
+  const statusMap = Object.fromEntries(bedroomStatus.map((s) => [s._id, s.count]));
   const available = statusMap.available ?? 0;
   const occupied = statusMap.occupied ?? 0;
   const maintenance = statusMap.maintenance ?? 0;
 
   return {
-    camps,
-    rooms,
+    houses,
+    bedrooms,
     residents,
     activeBookings,
     available,
     occupied,
     maintenance,
-    occupancyRate: rooms > 0 ? Math.round((occupied / rooms) * 100) : 0,
+    occupancyRate: bedrooms > 0 ? Math.round((occupied / bedrooms) * 100) : 0,
   };
 }
 
@@ -35,18 +35,18 @@ export async function getRecentBookings(limit = 8) {
     .sort({ createdAt: -1 })
     .limit(limit)
     .populate("residentId", "firstName lastName employeeId company")
-    .populate("roomId", "block roomNumber type")
-    .populate("campId", "name code")
+    .populate("bedroomId", "label type")
+    .populate("houseId", "name code")
     .lean();
 }
 
-export async function getCampsWithOccupancy() {
+export async function getHousesWithOccupancy() {
   await connectDB();
-  const camps = await Camp.find().sort({ name: 1 }).lean();
-  const rooms = await Room.aggregate([
+  const houses = await House.find().sort({ name: 1 }).lean();
+  const bedrooms = await Bedroom.aggregate([
     {
       $group: {
-        _id: "$campId",
+        _id: "$houseId",
         total: { $sum: 1 },
         occupied: {
           $sum: { $cond: [{ $eq: ["$status", "occupied"] }, 1, 0] },
@@ -58,36 +58,36 @@ export async function getCampsWithOccupancy() {
     },
   ]);
 
-  const byCamp = Object.fromEntries(rooms.map((r) => [String(r._id), r]));
+  const byHouse = Object.fromEntries(bedrooms.map((r) => [String(r._id), r]));
 
-  return camps.map((camp) => {
-    const stats = byCamp[String(camp._id)] ?? { total: 0, occupied: 0, available: 0 };
+  return houses.map((house) => {
+    const stats = byHouse[String(house._id)] ?? { total: 0, occupied: 0, available: 0 };
     return {
-      ...camp,
-      roomStats: stats,
+      ...house,
+      bedroomStats: stats,
     };
   });
 }
 
-/** Rooms marked available and not tied to a reserved/checked-in booking. */
-export async function getBookableRooms() {
+/** Bedrooms marked available and not tied to a reserved/checked-in booking. */
+export async function getBookableBedrooms() {
   await connectDB();
 
   const blocked = await Booking.find({
     status: { $in: ["reserved", "checked_in"] },
   })
-    .select("roomId")
+    .select("bedroomId")
     .lean();
 
-  const blockedRoomIds = blocked.map((booking) => booking.roomId);
+  const blockedBedroomIds = blocked.map((booking) => booking.bedroomId);
 
   const filter: Record<string, unknown> = { status: "available" };
-  if (blockedRoomIds.length > 0) {
-    filter._id = { $nin: blockedRoomIds };
+  if (blockedBedroomIds.length > 0) {
+    filter._id = { $nin: blockedBedroomIds };
   }
 
-  return Room.find(filter)
-    .select("block roomNumber campId type")
-    .sort({ block: 1, roomNumber: 1 })
+  return Bedroom.find(filter)
+    .select("label type beds houseId")
+    .sort({ label: 1 })
     .lean();
 }

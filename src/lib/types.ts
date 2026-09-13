@@ -1,16 +1,16 @@
-export const ROOM_TYPES = ["single", "twin", "ensuite", "accessible"] as const;
-export type RoomType = (typeof ROOM_TYPES)[number];
+export const BEDROOM_TYPES = ["single", "double", "twin", "ensuite"] as const;
+export type BedroomType = (typeof BEDROOM_TYPES)[number];
 
-export const ROOM_STATUSES = [
+export const BEDROOM_STATUSES = [
   "available",
   "occupied",
   "maintenance",
   "out_of_service",
 ] as const;
-export type RoomStatus = (typeof ROOM_STATUSES)[number];
+export type BedroomStatus = (typeof BEDROOM_STATUSES)[number];
 
-export const CAMP_STATUSES = ["active", "inactive", "commissioning"] as const;
-export type CampStatus = (typeof CAMP_STATUSES)[number];
+export const HOUSE_STATUSES = ["active", "inactive"] as const;
+export type HouseStatus = (typeof HOUSE_STATUSES)[number];
 
 export const RESIDENT_ROLES = [
   "operator",

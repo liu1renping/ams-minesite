@@ -2,18 +2,20 @@ import { AccommodationPanel } from "@/components/AccommodationPanel";
 import { AppShell } from "@/components/AppShell";
 import { type ApplicationRecord } from "@/lib/applications";
 import { connectDB } from "@/lib/db";
-import { Camp, Room, VisitorApplication } from "@/lib/models";
-import { getBookableRooms } from "@/lib/queries";
+import { Bedroom, House, VisitorApplication } from "@/lib/models";
+import { getBookableBedrooms } from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
 export default async function AccommodationPage() {
   await connectDB();
 
-  const [docs, camps, bookableRooms] = await Promise.all([
-    VisitorApplication.find({ status: "approved" }).sort({ decidedAt: -1, createdAt: -1 }).lean(),
-    Camp.find({ status: "active" }).select("name code").sort({ name: 1 }).lean(),
-    getBookableRooms(),
+  const [docs, houses, bookableBedrooms] = await Promise.all([
+    VisitorApplication.find({ status: "approved" })
+      .sort({ decidedAt: -1, createdAt: -1 })
+      .lean(),
+    House.find({ status: "active" }).select("name code").sort({ name: 1 }).lean(),
+    getBookableBedrooms(),
   ]);
 
   const applications: ApplicationRecord[] = docs.map((app) => ({
@@ -38,31 +40,28 @@ export default async function AccommodationPage() {
     gmNotes: app.gmNotes ?? "",
   }));
 
-  // Include occupied rooms that are still selectable if bookable list is empty for a camp —
-  // allocation uses date overlap checks on the API. Prefer bookable rooms first.
-  const roomDocs =
-    bookableRooms.length > 0
-      ? bookableRooms
-      : await Room.find({ status: { $in: ["available", "occupied"] } })
-          .select("block roomNumber campId type")
-          .sort({ block: 1, roomNumber: 1 })
+  const bedroomDocs =
+    bookableBedrooms.length > 0
+      ? bookableBedrooms
+      : await Bedroom.find({ status: { $in: ["available", "occupied"] } })
+          .select("label type houseId")
+          .sort({ label: 1 })
           .lean();
 
   return (
     <AppShell pathname="/accommodation">
       <AccommodationPanel
         applications={applications}
-        camps={camps.map((c) => ({
-          _id: String(c._id),
-          name: c.name,
-          code: c.code,
+        houses={houses.map((h) => ({
+          _id: String(h._id),
+          name: h.name,
+          code: h.code,
         }))}
-        rooms={roomDocs.map((r) => ({
-          _id: String(r._id),
-          campId: String(r.campId),
-          block: r.block,
-          roomNumber: r.roomNumber,
-          type: r.type ?? "single",
+        bedrooms={bedroomDocs.map((b) => ({
+          _id: String(b._id),
+          houseId: String(b.houseId),
+          label: b.label,
+          type: b.type ?? "single",
         }))}
       />
     </AppShell>

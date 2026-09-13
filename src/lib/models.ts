@@ -2,46 +2,41 @@ import { Schema, models, model, type InferSchemaType, type Model } from "mongoos
 import {
   APPLICATION_STATUSES,
   APPLICATION_TYPES,
+  BEDROOM_STATUSES,
+  BEDROOM_TYPES,
   BOOKING_STATUSES,
   DEPARTMENTS,
+  HOUSE_STATUSES,
   RESIDENT_ROLES,
-  ROOM_STATUSES,
-  ROOM_TYPES,
   ROSTER_PATTERNS,
   VISIT_REASONS,
 } from "@/lib/types";
 
-const CampSchema = new Schema(
+const HouseSchema = new Schema(
   {
     name: { type: String, required: true, trim: true },
     code: { type: String, required: true, unique: true, uppercase: true, trim: true },
-    siteName: { type: String, required: true, trim: true },
-    location: { type: String, required: true, trim: true },
-    capacity: { type: Number, required: true, min: 0 },
-    status: {
-      type: String,
-      enum: ["active", "inactive", "commissioning"],
-      default: "active",
-    },
+    address: { type: String, required: true, trim: true },
+    suburb: { type: String, required: true, trim: true },
+    status: { type: String, enum: HOUSE_STATUSES, default: "active" },
     notes: { type: String, default: "" },
   },
   { timestamps: true },
 );
 
-const RoomSchema = new Schema(
+const BedroomSchema = new Schema(
   {
-    campId: { type: Schema.Types.ObjectId, ref: "Camp", required: true, index: true },
-    block: { type: String, required: true, trim: true },
-    roomNumber: { type: String, required: true, trim: true },
-    type: { type: String, enum: ROOM_TYPES, required: true },
+    houseId: { type: Schema.Types.ObjectId, ref: "House", required: true, index: true },
+    label: { type: String, required: true, trim: true },
+    type: { type: String, enum: BEDROOM_TYPES, required: true },
     beds: { type: Number, required: true, min: 1, default: 1 },
-    status: { type: String, enum: ROOM_STATUSES, default: "available", index: true },
+    status: { type: String, enum: BEDROOM_STATUSES, default: "available", index: true },
     amenities: [{ type: String, trim: true }],
   },
   { timestamps: true },
 );
 
-RoomSchema.index({ campId: 1, block: 1, roomNumber: 1 }, { unique: true });
+BedroomSchema.index({ houseId: 1, label: 1 }, { unique: true });
 
 const ResidentSchema = new Schema(
   {
@@ -67,8 +62,13 @@ const BookingSchema = new Schema(
       required: true,
       index: true,
     },
-    roomId: { type: Schema.Types.ObjectId, ref: "Room", required: true, index: true },
-    campId: { type: Schema.Types.ObjectId, ref: "Camp", required: true, index: true },
+    bedroomId: {
+      type: Schema.Types.ObjectId,
+      ref: "Bedroom",
+      required: true,
+      index: true,
+    },
+    houseId: { type: Schema.Types.ObjectId, ref: "House", required: true, index: true },
     checkIn: { type: Date, required: true },
     checkOut: { type: Date, required: true },
     status: { type: String, enum: BOOKING_STATUSES, default: "reserved", index: true },
@@ -78,7 +78,7 @@ const BookingSchema = new Schema(
   { timestamps: true },
 );
 
-BookingSchema.index({ roomId: 1, checkIn: 1, checkOut: 1 });
+BookingSchema.index({ bedroomId: 1, checkIn: 1, checkOut: 1 });
 
 const TravellerSchema = new Schema(
   {
@@ -118,15 +118,19 @@ const VisitorApplicationSchema = new Schema(
     },
     gmNotes: { type: String, default: "" },
     decidedAt: { type: Date },
-    campId: { type: Schema.Types.ObjectId, ref: "Camp" },
-    roomId: { type: Schema.Types.ObjectId, ref: "Room" },
+    houseId: { type: Schema.Types.ObjectId, ref: "House" },
+    bedroomId: { type: Schema.Types.ObjectId, ref: "Bedroom" },
     allocatedAt: { type: Date },
   },
   { timestamps: true },
 );
 
-export type CampDocument = InferSchemaType<typeof CampSchema> & { _id: Schema.Types.ObjectId };
-export type RoomDocument = InferSchemaType<typeof RoomSchema> & { _id: Schema.Types.ObjectId };
+export type HouseDocument = InferSchemaType<typeof HouseSchema> & {
+  _id: Schema.Types.ObjectId;
+};
+export type BedroomDocument = InferSchemaType<typeof BedroomSchema> & {
+  _id: Schema.Types.ObjectId;
+};
 export type ResidentDocument = InferSchemaType<typeof ResidentSchema> & {
   _id: Schema.Types.ObjectId;
 };
@@ -137,11 +141,11 @@ export type VisitorApplicationDocument = InferSchemaType<typeof VisitorApplicati
   _id: Schema.Types.ObjectId;
 };
 
-export const Camp: Model<CampDocument> =
-  models.Camp || model<CampDocument>("Camp", CampSchema);
+export const House: Model<HouseDocument> =
+  models.House || model<HouseDocument>("House", HouseSchema);
 
-export const Room: Model<RoomDocument> =
-  models.Room || model<RoomDocument>("Room", RoomSchema);
+export const Bedroom: Model<BedroomDocument> =
+  models.Bedroom || model<BedroomDocument>("Bedroom", BedroomSchema);
 
 export const Resident: Model<ResidentDocument> =
   models.Resident || model<ResidentDocument>("Resident", ResidentSchema);

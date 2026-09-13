@@ -1,8 +1,8 @@
 # AMS — Accommodation Management System
 
-Minesite accommodation management built with **Next.js 16**, **Tailwind CSS v4**, and **MongoDB** (Mongoose).
+Minesite visitor accommodation built with **Next.js 16**, **Tailwind CSS v4**, and **MongoDB** (Mongoose).
 
-Track camps/villages, room inventory, residents (FIFO / contractors / visitors), and roster bookings with check-in / check-out.
+Manage **houses** with independently allocatable **bedrooms**, visitor applications, GM approval, and bedroom allocation.
 
 ## Stack
 
@@ -16,14 +16,14 @@ Track camps/villages, room inventory, residents (FIFO / contractors / visitors),
 - A MongoDB instance (local or [Atlas](https://www.mongodb.com/atlas))
 
 ```bash
-nvm use   # or: nvm use 20.20.2
+nvm use
 ```
 
 ## Setup
 
 ```bash
 cp .env.example .env.local
-# edit MONGODB_URI if needed (default: mongodb://127.0.0.1:27017/ams)
+# edit MONGODB_URI if needed
 
 npm install
 npm run seed
@@ -32,42 +32,26 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-## What's included
+## Workflow
 
-| Area | Description |
-|------|-------------|
-| Dashboard | Occupancy stats, camp summary, quick booking |
-| Camps | Village / camp registry |
-| Rooms | Block + room inventory and status |
-| Residents | Workforce / contractor directory |
-| Bookings | Allocations with check-in, check-out, cancel |
+1. **Visitor Application** — submit visit request  
+2. **GM Approval** — approve / reject submitted applications  
+3. **Accommodation** — allocate an available bedroom in a house  
+4. **Houses / Bedrooms** — manage property inventory (each bedroom is independent)
 
-### API routes
+## API routes
 
 - `GET/POST /api/applications`
 - `PATCH /api/applications/:id` (`approve` | `reject` | `allocate`)
-- `GET/POST /api/camps`
-- `GET/PATCH/DELETE /api/camps/:id`
-- `GET/POST /api/rooms`
-- `GET/PATCH/DELETE /api/rooms/:id`
+- `GET/POST /api/houses`
+- `GET/PATCH/DELETE /api/houses/:id`
+- `GET/POST /api/bedrooms`
+- `GET/PATCH/DELETE /api/bedrooms/:id`
 - `GET/POST /api/residents`
 - `GET/PATCH/DELETE /api/residents/:id`
 - `GET/POST /api/bookings`
 - `PATCH /api/bookings/:id`
 - `GET /api/stats`
-
-## Project layout
-
-```
-src/
-  app/                 # Pages + API routes
-  components/          # UI shell and forms
-  lib/
-    db.ts              # Mongo connection (cached)
-    models.ts          # Camp, Room, Resident, Booking
-    queries.ts         # Dashboard aggregations
-scripts/seed.ts        # Sample minesite data
-```
 
 ## Scripts
 
@@ -75,24 +59,12 @@ scripts/seed.ts        # Sample minesite data
 |---------|---------|
 | `npm run dev` | Start Next.js (Turbopack) |
 | `npm run build` | Production build |
-| `npm run seed` | Reset and load sample data |
+| `npm run seed` | Reset and load sample houses/bedrooms |
 | `npm run lint` | ESLint |
 
 ## Deploy on Vercel
 
 1. Import the GitHub repo in [Vercel](https://vercel.com).
-2. In **Project Settings → Environment Variables**, add:
-
-   | Name | Value | Environments |
-   |------|-------|--------------|
-   | `MONGODB_URI` | your Atlas `mongodb+srv://...` URI | Production, Preview, Development |
-
-3. Redeploy (Deployments → … → Redeploy), or push a new commit.
-4. In Atlas **Network Access**, allow Vercel egress (for getting started you can allow `0.0.0.0/0`).
-
-`.env.local` is only for local development and is not uploaded to Vercel.
-
-## Notes
-
-- Overlapping room bookings are rejected by the bookings API.
-- Checking in a booking marks the room as `occupied`; check-out / cancel returns it to `available` when no other active stay remains.
+2. Add `MONGODB_URI` in Project Settings → Environment Variables.
+3. Functions region is pinned to Sydney (`syd1`) via `vercel.json`.
+4. In Atlas Network Access, allow Vercel egress (or `0.0.0.0/0` for personal projects).

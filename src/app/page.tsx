@@ -2,11 +2,11 @@ import { AppShell } from "@/components/AppShell";
 import { QuickBookingForm } from "@/components/QuickBookingForm";
 import { DataTable, EmptyState, Panel, StatCard, StatusPill } from "@/components/ui";
 import { connectDB } from "@/lib/db";
-import { Camp, Resident } from "@/lib/models";
+import { House, Resident } from "@/lib/models";
 import {
-  getBookableRooms,
-  getCampsWithOccupancy,
+  getBookableBedrooms,
   getDashboardStats,
+  getHousesWithOccupancy,
   getRecentBookings,
 } from "@/lib/queries";
 
@@ -22,8 +22,8 @@ function formatDate(value: Date | string) {
 
 export default async function HomePage() {
   let stats = {
-    camps: 0,
-    rooms: 0,
+    houses: 0,
+    bedrooms: 0,
     residents: 0,
     activeBookings: 0,
     available: 0,
@@ -31,14 +31,13 @@ export default async function HomePage() {
     maintenance: 0,
     occupancyRate: 0,
   };
-  let camps: Awaited<ReturnType<typeof getCampsWithOccupancy>> = [];
+  let houses: Awaited<ReturnType<typeof getHousesWithOccupancy>> = [];
   let bookings: Awaited<ReturnType<typeof getRecentBookings>> = [];
-  let formCamps: Array<{ _id: string; name: string }> = [];
-  let formRooms: Array<{
+  let formHouses: Array<{ _id: string; name: string }> = [];
+  let formBedrooms: Array<{
     _id: string;
-    block: string;
-    roomNumber: string;
-    campId: string | { _id: string };
+    label: string;
+    houseId: string | { _id: string };
   }> = [];
   let formResidents: Array<{
     _id: string;
@@ -50,13 +49,13 @@ export default async function HomePage() {
 
   try {
     await connectDB();
-    const [nextStats, nextCamps, nextBookings, campDocs, roomDocs, residentDocs] =
+    const [nextStats, nextHouses, nextBookings, houseDocs, bedroomDocs, residentDocs] =
       await Promise.all([
         getDashboardStats(),
-        getCampsWithOccupancy(),
+        getHousesWithOccupancy(),
         getRecentBookings(),
-        Camp.find().select("name").sort({ name: 1 }).lean(),
-        getBookableRooms(),
+        House.find().select("name").sort({ name: 1 }).lean(),
+        getBookableBedrooms(),
         Resident.find({ active: true })
           .select("firstName lastName employeeId")
           .sort({ lastName: 1 })
@@ -64,14 +63,13 @@ export default async function HomePage() {
       ]);
 
     stats = nextStats;
-    camps = nextCamps;
+    houses = nextHouses;
     bookings = nextBookings;
-    formCamps = campDocs.map((c) => ({ _id: String(c._id), name: c.name }));
-    formRooms = roomDocs.map((r) => ({
-      _id: String(r._id),
-      block: r.block,
-      roomNumber: r.roomNumber,
-      campId: String(r.campId),
+    formHouses = houseDocs.map((h) => ({ _id: String(h._id), name: h.name }));
+    formBedrooms = bedroomDocs.map((b) => ({
+      _id: String(b._id),
+      label: b.label,
+      houseId: String(b.houseId),
     }));
     formResidents = residentDocs.map((r) => ({
       _id: String(r._id),
@@ -94,9 +92,9 @@ export default async function HomePage() {
       ) : null}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StatCard label="Active camps" value={stats.camps} />
+        <StatCard label="Active houses" value={stats.houses} />
         <StatCard
-          label="Occupancy"
+          label="Bedroom occupancy"
           value={`${stats.occupancyRate}%`}
           hint={`${stats.occupied} occupied · ${stats.available} available`}
         />
@@ -104,26 +102,26 @@ export default async function HomePage() {
         <StatCard
           label="Checked in"
           value={stats.activeBookings}
-          hint={`${stats.maintenance} rooms in maintenance`}
+          hint={`${stats.maintenance} bedrooms in maintenance`}
         />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-5">
         <div className="lg:col-span-3">
-          <Panel title="Camp occupancy">
-            {camps.length === 0 ? (
-              <EmptyState message="No camps yet. Run npm run seed to load sample minesite data." />
+          <Panel title="House occupancy">
+            {houses.length === 0 ? (
+              <EmptyState message="No houses yet. Run npm run seed or add houses." />
             ) : (
-              <DataTable headers={["Camp", "Code", "Rooms", "Occupied", "Available", "Status"]}>
-                {camps.map((camp) => (
-                  <tr key={String(camp._id)} className="text-stone-300">
-                    <td className="px-2 py-3 font-medium text-stone-100">{camp.name}</td>
-                    <td className="px-2 py-3 font-mono text-xs">{camp.code}</td>
-                    <td className="px-2 py-3">{camp.roomStats.total}</td>
-                    <td className="px-2 py-3">{camp.roomStats.occupied}</td>
-                    <td className="px-2 py-3">{camp.roomStats.available}</td>
+              <DataTable headers={["House", "Code", "Bedrooms", "Occupied", "Available", "Status"]}>
+                {houses.map((house) => (
+                  <tr key={String(house._id)} className="text-stone-300">
+                    <td className="px-2 py-3 font-medium text-stone-100">{house.name}</td>
+                    <td className="px-2 py-3 font-mono text-xs">{house.code}</td>
+                    <td className="px-2 py-3">{house.bedroomStats.total}</td>
+                    <td className="px-2 py-3">{house.bedroomStats.occupied}</td>
+                    <td className="px-2 py-3">{house.bedroomStats.available}</td>
                     <td className="px-2 py-3">
-                      <StatusPill status={camp.status} />
+                      <StatusPill status={house.status} />
                     </td>
                   </tr>
                 ))}
@@ -135,8 +133,8 @@ export default async function HomePage() {
         <div className="lg:col-span-2">
           <Panel title="Quick booking">
             <QuickBookingForm
-              camps={formCamps}
-              rooms={formRooms}
+              houses={formHouses}
+              bedrooms={formBedrooms}
               residents={formResidents}
             />
           </Panel>
@@ -148,20 +146,15 @@ export default async function HomePage() {
           {bookings.length === 0 ? (
             <EmptyState message="No bookings yet." />
           ) : (
-            <DataTable
-              headers={["Resident", "Camp / Room", "Stay", "Status"]}
-            >
+            <DataTable headers={["Resident", "House / Bedroom", "Stay", "Status"]}>
               {bookings.map((booking) => {
                 const resident = booking.residentId as {
                   firstName?: string;
                   lastName?: string;
                   employeeId?: string;
                 } | null;
-                const room = booking.roomId as {
-                  block?: string;
-                  roomNumber?: string;
-                } | null;
-                const camp = booking.campId as { name?: string; code?: string } | null;
+                const bedroom = booking.bedroomId as { label?: string } | null;
+                const house = booking.houseId as { name?: string; code?: string } | null;
 
                 return (
                   <tr key={String(booking._id)} className="text-stone-300">
@@ -176,9 +169,9 @@ export default async function HomePage() {
                       </div>
                     </td>
                     <td className="px-2 py-3">
-                      <div>{camp?.name}</div>
+                      <div>{house?.name}</div>
                       <div className="font-mono text-xs text-stone-500">
-                        {room ? `${room.block}-${room.roomNumber}` : "—"}
+                        {bedroom?.label ?? "—"}
                       </div>
                     </td>
                     <td className="px-2 py-3 text-xs">

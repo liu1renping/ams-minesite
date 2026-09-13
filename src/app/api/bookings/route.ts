@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/db";
 import { jsonError, jsonOk, serialize } from "@/lib/api";
-import { Booking, Room } from "@/lib/models";
+import { Bedroom, Booking } from "@/lib/models";
 
 export async function GET(request: Request) {
   try {
@@ -13,8 +13,8 @@ export async function GET(request: Request) {
 
     const bookings = await Booking.find(filter)
       .populate("residentId", "firstName lastName employeeId company")
-      .populate("roomId", "block roomNumber type")
-      .populate("campId", "name code")
+      .populate("bedroomId", "label type")
+      .populate("houseId", "name code address")
       .sort({ checkIn: -1 })
       .limit(100);
 
@@ -37,14 +37,14 @@ export async function POST(request: Request) {
     }
 
     const overlap = await Booking.findOne({
-      roomId: body.roomId,
+      bedroomId: body.bedroomId,
       status: { $in: ["reserved", "checked_in"] },
       checkIn: { $lt: checkOut },
       checkOut: { $gt: checkIn },
     });
 
     if (overlap) {
-      return jsonError("Room already booked for overlapping dates", 409);
+      return jsonError("Bedroom already booked for overlapping dates", 409);
     }
 
     const booking = await Booking.create({
@@ -54,7 +54,7 @@ export async function POST(request: Request) {
     });
 
     if (body.status === "checked_in") {
-      await Room.findByIdAndUpdate(body.roomId, { status: "occupied" });
+      await Bedroom.findByIdAndUpdate(body.bedroomId, { status: "occupied" });
     }
 
     return jsonOk(serialize(booking), { status: 201 });

@@ -11,18 +11,22 @@ function toDateInputValue(date: Date) {
 }
 
 export function QuickBookingForm({
-  camps,
-  rooms,
+  houses,
+  bedrooms,
   residents,
 }: {
-  camps: Array<{ _id: string; name: string }>;
-  rooms: Array<{ _id: string; block: string; roomNumber: string; campId: string | { _id: string } }>;
+  houses: Array<{ _id: string; name: string }>;
+  bedrooms: Array<{
+    _id: string;
+    label: string;
+    houseId: string | { _id: string };
+  }>;
   residents: Array<{ _id: string; firstName: string; lastName: string; employeeId: string }>;
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [campId, setCampId] = useState(camps[0]?._id ?? "");
+  const [houseId, setHouseId] = useState(houses[0]?._id ?? "");
 
   const today = new Date();
   const defaultCheckIn = toDateInputValue(today);
@@ -30,9 +34,9 @@ export function QuickBookingForm({
     new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7),
   );
 
-  const filteredRooms = rooms.filter((room) => {
-    const id = typeof room.campId === "string" ? room.campId : room.campId?._id;
-    return id === campId;
+  const filteredBedrooms = bedrooms.filter((bedroom) => {
+    const id = typeof bedroom.houseId === "string" ? bedroom.houseId : bedroom.houseId?._id;
+    return id === houseId;
   });
 
   async function onSubmit(formData: FormData) {
@@ -40,8 +44,8 @@ export function QuickBookingForm({
     setError(null);
 
     const payload = {
-      campId: String(formData.get("campId")),
-      roomId: String(formData.get("roomId")),
+      houseId: String(formData.get("houseId")),
+      bedroomId: String(formData.get("bedroomId")),
       residentId: String(formData.get("residentId")),
       checkIn: String(formData.get("checkIn")),
       checkOut: String(formData.get("checkOut")),
@@ -66,7 +70,7 @@ export function QuickBookingForm({
     router.refresh();
   }
 
-  if (!camps.length || !residents.length) {
+  if (!houses.length || !residents.length) {
     return (
       <p className="text-sm text-stone-500">
         Seed sample data first (`npm run seed`) to create bookings.
@@ -74,10 +78,10 @@ export function QuickBookingForm({
     );
   }
 
-  if (!rooms.length) {
+  if (!bedrooms.length) {
     return (
       <p className="text-sm text-stone-500">
-        No available rooms to book. Free a room or add one on the Rooms page.
+        No available bedrooms to book. Free a bedroom or add one on the Bedrooms page.
       </p>
     );
   }
@@ -85,36 +89,36 @@ export function QuickBookingForm({
   return (
     <form action={onSubmit} className="grid gap-3 sm:grid-cols-2">
       <label className="grid gap-1 text-xs text-stone-400">
-        Camp
+        House
         <select
-          name="campId"
-          value={campId}
-          onChange={(e) => setCampId(e.target.value)}
+          name="houseId"
+          value={houseId}
+          onChange={(e) => setHouseId(e.target.value)}
           className="rounded-md border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100"
         >
-          {camps.map((camp) => (
-            <option key={camp._id} value={camp._id}>
-              {camp.name}
+          {houses.map((house) => (
+            <option key={house._id} value={house._id}>
+              {house.name}
             </option>
           ))}
         </select>
       </label>
 
       <label className="grid gap-1 text-xs text-stone-400">
-        Room
+        Bedroom
         <select
-          name="roomId"
+          name="bedroomId"
           required
           className="rounded-md border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100"
         >
-          {filteredRooms.length === 0 ? (
+          {filteredBedrooms.length === 0 ? (
             <option value="" disabled>
-              No available rooms in this camp
+              No available bedrooms in this house
             </option>
           ) : (
-            filteredRooms.map((room) => (
-              <option key={room._id} value={room._id}>
-                {room.block}-{room.roomNumber}
+            filteredBedrooms.map((bedroom) => (
+              <option key={bedroom._id} value={bedroom._id}>
+                {bedroom.label}
               </option>
             ))
           )}

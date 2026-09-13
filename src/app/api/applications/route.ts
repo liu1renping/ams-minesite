@@ -21,8 +21,8 @@ export async function GET(request: Request) {
     if (status) filter.status = status;
 
     const applications = await VisitorApplication.find(filter)
-      .populate("campId", "name code")
-      .populate("roomId", "block roomNumber type")
+      .populate("houseId", "name code address")
+      .populate("bedroomId", "label type")
       .sort({ createdAt: -1 })
       .limit(100);
     return jsonOk(serialize(applications));
