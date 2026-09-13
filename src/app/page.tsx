@@ -2,8 +2,13 @@ import { AppShell } from "@/components/AppShell";
 import { QuickBookingForm } from "@/components/QuickBookingForm";
 import { DataTable, EmptyState, Panel, StatCard, StatusPill } from "@/components/ui";
 import { connectDB } from "@/lib/db";
-import { Camp, Resident, Room } from "@/lib/models";
-import { getCampsWithOccupancy, getDashboardStats, getRecentBookings } from "@/lib/queries";
+import { Camp, Resident } from "@/lib/models";
+import {
+  getBookableRooms,
+  getCampsWithOccupancy,
+  getDashboardStats,
+  getRecentBookings,
+} from "@/lib/queries";
 
 export const dynamic = "force-dynamic";
 
@@ -51,10 +56,7 @@ export default async function HomePage() {
         getCampsWithOccupancy(),
         getRecentBookings(),
         Camp.find().select("name").sort({ name: 1 }).lean(),
-        Room.find({ status: "available" })
-          .select("block roomNumber campId")
-          .sort({ block: 1, roomNumber: 1 })
-          .lean(),
+        getBookableRooms(),
         Resident.find({ active: true })
           .select("firstName lastName employeeId")
           .sort({ lastName: 1 })

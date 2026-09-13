@@ -68,3 +68,24 @@ export async function getCampsWithOccupancy() {
     };
   });
 }
+
+/** Rooms marked available and not tied to a reserved/checked-in booking. */
+export async function getBookableRooms() {
+  await connectDB();
+
+  const blocked = await Booking.find({
+    status: { $in: ["reserved", "checked_in"] },
+  })
+    .select("roomId")
+    .lean();
+
+  const blockedRoomIds = blocked.map((booking) => booking.roomId);
+
+  return Room.find({
+    status: "available",
+    ...(blockedRoomIds.length > 0 ? { _id: { $nin: blockedRoomIds } } : {}),
+  })
+    .select("block roomNumber campId")
+    .sort({ block: 1, roomNumber: 1 })
+    .lean();
+}
