@@ -11,10 +11,18 @@ type TravellerInput = {
   photoIdFileName?: string;
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     await connectDB();
-    const applications = await VisitorApplication.find()
+    const { searchParams } = new URL(request.url);
+    const status = searchParams.get("status");
+
+    const filter: Record<string, string> = {};
+    if (status) filter.status = status;
+
+    const applications = await VisitorApplication.find(filter)
+      .populate("campId", "name code")
+      .populate("roomId", "block roomNumber type")
       .sort({ createdAt: -1 })
       .limit(100);
     return jsonOk(serialize(applications));

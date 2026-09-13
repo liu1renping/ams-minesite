@@ -19,6 +19,26 @@ const emptyTraveller = (): TravellerForm => ({
   photoIdFileName: "",
 });
 
+function toDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function defaultStayDates() {
+  const today = new Date();
+  const departure = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() + 7,
+  );
+  return {
+    arrival: toDateInputValue(today),
+    departure: toDateInputValue(departure),
+  };
+}
+
 const fieldClass =
   "w-full rounded-md border border-stone-700 bg-stone-900 px-3 py-2 text-sm text-stone-100 placeholder:text-stone-600";
 
@@ -38,13 +58,14 @@ function Fieldset({
 }
 
 export function VisitorApplicationForm() {
+  const defaults = defaultStayDates();
   const [travellers, setTravellers] = useState<TravellerForm[]>([emptyTraveller()]);
   const [hostName, setHostName] = useState("");
   const [hostTitle, setHostTitle] = useState("");
   const [department, setDepartment] = useState<string>(DEPARTMENTS[0]);
   const [reason, setReason] = useState<string>(VISIT_REASONS[0]);
-  const [arrival, setArrival] = useState("");
-  const [departure, setDeparture] = useState("");
+  const [arrival, setArrival] = useState(defaults.arrival);
+  const [departure, setDeparture] = useState(defaults.departure);
   const [accommodationRequired, setAccommodationRequired] = useState("yes");
   const [carRego, setCarRego] = useState("");
   const [pending, setPending] = useState(false);
@@ -104,8 +125,9 @@ export function VisitorApplicationForm() {
     setHostTitle("");
     setDepartment(DEPARTMENTS[0]);
     setReason(VISIT_REASONS[0]);
-    setArrival("");
-    setDeparture("");
+    const nextStay = defaultStayDates();
+    setArrival(nextStay.arrival);
+    setDeparture(nextStay.departure);
     setAccommodationRequired("yes");
     setCarRego("");
   }

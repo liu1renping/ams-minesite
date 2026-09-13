@@ -87,7 +87,7 @@ export async function getBookableRooms() {
   }
 
   return Room.find(filter)
-    .select("block roomNumber campId")
+    .select("block roomNumber campId type")
     .sort({ block: 1, roomNumber: 1 })
     .lean();
 }

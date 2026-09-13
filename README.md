@@ -45,6 +45,7 @@ Open [http://localhost:3000](http://localhost:3000).
 ### API routes
 
 - `GET/POST /api/applications`
+- `PATCH /api/applications/:id` (`approve` | `reject` | `allocate`)
 - `GET/POST /api/camps`
 - `GET/PATCH/DELETE /api/camps/:id`
 - `GET/POST /api/rooms`

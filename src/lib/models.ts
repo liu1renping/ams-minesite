@@ -116,6 +116,11 @@ const VisitorApplicationSchema = new Schema(
       default: "submitted",
       index: true,
     },
+    gmNotes: { type: String, default: "" },
+    decidedAt: { type: Date },
+    campId: { type: Schema.Types.ObjectId, ref: "Camp" },
+    roomId: { type: Schema.Types.ObjectId, ref: "Room" },
+    allocatedAt: { type: Date },
   },
   { timestamps: true },
 );

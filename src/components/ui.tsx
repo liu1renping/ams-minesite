@@ -55,6 +55,10 @@ export function StatusPill({ status }: { status: string }) {
     checked_in: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
     checked_out: "bg-stone-500/15 text-stone-300 ring-stone-500/30",
     cancelled: "bg-rose-500/15 text-rose-300 ring-rose-500/30",
+    submitted: "bg-sky-500/15 text-sky-300 ring-sky-500/30",
+    approved: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",
+    rejected: "bg-rose-500/15 text-rose-300 ring-rose-500/30",
+    allocated: "bg-amber-500/15 text-amber-300 ring-amber-500/30",
   };
 
   return (
