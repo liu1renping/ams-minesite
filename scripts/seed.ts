@@ -148,8 +148,17 @@ async function seed() {
   ]);
 
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const inThree = new Date(today);
+  inThree.setDate(today.getDate() + 3);
   const inSeven = new Date(today);
   inSeven.setDate(today.getDate() + 7);
+  const inFourteen = new Date(today);
+  inFourteen.setDate(today.getDate() + 14);
+  const inTwentyOne = new Date(today);
+  inTwentyOne.setDate(today.getDate() + 21);
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
 
   await db.collection("bookings").insertMany([
     {
@@ -166,11 +175,174 @@ async function seed() {
     },
   ]);
 
+  const applications = await db.collection("visitorapplications").insertMany([
+    {
+      applicationType: "single",
+      travellers: [
+        {
+          name: "Tom Ellis",
+          email: "tom.ellis@safetyaudit.com",
+          phone: "0400 333 010",
+          company: "Safety Audit Co",
+          photoIdFileName: "tom-ellis-id.pdf",
+        },
+      ],
+      hostName: "Sarah Chen",
+      hostTitle: "HSE Manager",
+      department: "HSE",
+      reason: "Site Tour",
+      arrival: inThree,
+      departure: inSeven,
+      accommodationRequired: true,
+      carRego: "1ABC234",
+      status: "submitted",
+      gmNotes: "",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      applicationType: "group",
+      travellers: [
+        {
+          name: "Priya Singh",
+          email: "priya.singh@northstar.com",
+          phone: "0400 222 201",
+          company: "Northstar Contractors",
+          photoIdFileName: "priya-id.pdf",
+        },
+        {
+          name: "Alex Morgan",
+          email: "alex.morgan@northstar.com",
+          phone: "0400 222 202",
+          company: "Northstar Contractors",
+          photoIdFileName: "alex-id.pdf",
+        },
+      ],
+      hostName: "Jordan Blake",
+      hostTitle: "Operations Supervisor",
+      department: "Operations",
+      reason: "Meeting",
+      arrival: inSeven,
+      departure: inFourteen,
+      accommodationRequired: true,
+      carRego: "2XYZ789",
+      status: "submitted",
+      gmNotes: "",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      applicationType: "single",
+      travellers: [
+        {
+          name: "Chris Wong",
+          email: "chris.wong@compliance.io",
+          phone: "0400 444 100",
+          company: "Compliance Partners",
+          photoIdFileName: "",
+        },
+      ],
+      hostName: "Maya Nguyen",
+      hostTitle: "Site Coordinator",
+      department: "Operations",
+      reason: "Audit",
+      arrival: today,
+      departure: inFourteen,
+      accommodationRequired: true,
+      carRego: "",
+      status: "approved",
+      gmNotes: "Approved for audit visit.",
+      decidedAt: yesterday,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      applicationType: "single",
+      travellers: [
+        {
+          name: "Lisa Park",
+          email: "lisa.park@ironridge.com",
+          phone: "0400 555 300",
+          company: "Iron Ridge Ops",
+          photoIdFileName: "",
+        },
+      ],
+      hostName: "Sarah Chen",
+      hostTitle: "HSE Manager",
+      department: "HSE",
+      reason: "Training",
+      arrival: inSeven,
+      departure: inSeven,
+      accommodationRequired: false,
+      carRego: "3TRN456",
+      status: "approved",
+      gmNotes: "Day visit only — no accommodation needed.",
+      decidedAt: yesterday,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      applicationType: "single",
+      travellers: [
+        {
+          name: "David Miller",
+          email: "david.miller@example.com",
+          phone: "0400 666 700",
+          company: "External Vendor",
+          photoIdFileName: "",
+        },
+      ],
+      hostName: "Jordan Blake",
+      hostTitle: "Operations Supervisor",
+      department: "Operations",
+      reason: "Contractor Work",
+      arrival: inFourteen,
+      departure: inTwentyOne,
+      accommodationRequired: true,
+      carRego: "",
+      status: "rejected",
+      gmNotes: "Visit deferred — contractor induction not complete.",
+      decidedAt: yesterday,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+    {
+      applicationType: "single",
+      travellers: [
+        {
+          name: "Emma Roberts",
+          email: "emma.roberts@inspect.com",
+          phone: "0400 777 800",
+          company: "Inspect Co",
+          photoIdFileName: "emma-id.pdf",
+        },
+      ],
+      hostName: "Maya Nguyen",
+      hostTitle: "Site Coordinator",
+      department: "Engineering",
+      reason: "Inspection",
+      arrival: today,
+      departure: inSeven,
+      accommodationRequired: true,
+      carRego: "4INS321",
+      status: "allocated",
+      gmNotes: "Approved and allocated.",
+      decidedAt: yesterday,
+      houseId: acaciaId,
+      bedroomId: bedrooms.insertedIds[4],
+      allocatedAt: today,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    },
+  ]);
+
   console.log("Seeded AMS sample data:");
   console.log(`  houses: ${Object.keys(houses.insertedIds).length}`);
   console.log(`  bedrooms: ${Object.keys(bedrooms.insertedIds).length}`);
   console.log(`  residents: ${Object.keys(residents.insertedIds).length}`);
   console.log("  bookings: 1");
+  console.log(`  visitor applications: ${Object.keys(applications.insertedIds).length}`);
+  console.log("    submitted: 2, approved: 2, rejected: 1, allocated: 1");
 
   await mongoose.disconnect();
 }

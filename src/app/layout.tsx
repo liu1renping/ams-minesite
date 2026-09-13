@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "AMS — Accommodation Management System",
-  description: "Minesite accommodation management for houses, bedrooms, visitors, and bookings.",
+  description: "Minesite accommodation management for properties, bedrooms, and visitor applications.",
   applicationName: "AMS",
 };
 

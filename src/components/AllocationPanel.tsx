@@ -17,7 +17,7 @@ type BedroomOption = {
   type: string;
 };
 
-export function AccommodationPanel({
+export function AllocationPanel({
   applications,
   houses,
   bedrooms,
@@ -59,7 +59,7 @@ export function AccommodationPanel({
 
     if (app.accommodationRequired && (!payload.houseId || !payload.bedroomId)) {
       setPendingId(null);
-      setError("Select a house and bedroom before allocating.");
+      setError("Select a property and bedroom before allocating.");
       return;
     }
 
@@ -73,7 +73,7 @@ export function AccommodationPanel({
     setPendingId(null);
 
     if (!res.ok) {
-      setError(data.error ?? "Could not allocate accommodation");
+      setError(data.error ?? "Could not complete allocation");
       return;
     }
 
@@ -84,10 +84,10 @@ export function AccommodationPanel({
     <div className="space-y-6">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <h2 className="text-2xl font-semibold tracking-tight text-stone-50 sm:text-3xl">
-          Accommodation
+          Allocation
         </h2>
         <p className="text-sm text-stone-400">
-          Allocate house bedrooms independently for GM-approved visitor applications.
+          Allocate property bedrooms independently for GM-approved visitor applications.
         </p>
       </div>
 

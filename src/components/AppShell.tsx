@@ -4,12 +4,8 @@ import Link from "next/link";
 const nav = [
   { href: "/apply", label: "Visitor Application" },
   { href: "/gm-approval", label: "GM Approval" },
-  { href: "/accommodation", label: "Accommodation" },
-  { href: "/", label: "Dashboard" },
-  { href: "/houses", label: "Houses" },
-  { href: "/bedrooms", label: "Bedrooms" },
-  { href: "/residents", label: "Residents" },
-  { href: "/bookings", label: "Bookings" },
+  { href: "/allocation", label: "Allocation" },
+  { href: "/properties", label: "Properties" },
 ];
 
 export function AppShell({
@@ -27,7 +23,7 @@ export function AppShell({
             <p className="font-mono text-xs tracking-[0.25em] text-amber-400/90 uppercase">
               Minesite Operations
             </p>
-            <Link href="/" className="mt-2 inline-flex items-center gap-3">
+            <Link href="/apply" className="mt-2 inline-flex items-center gap-3">
               <Image
                 src="/icon.png"
                 alt="AMS"
@@ -41,7 +37,7 @@ export function AppShell({
               </h1>
             </Link>
             <p className="mt-2 max-w-xl text-sm text-stone-400">
-              Accommodation Management System — houses, bedrooms, visitors, and allocations.
+              Accommodation Management System — properties, visitors, and allocations.
             </p>
           </div>
           <nav className="flex flex-wrap gap-1">
