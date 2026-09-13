@@ -47,6 +47,7 @@ Open [http://localhost:3000](http://localhost:3000).
 - `GET/POST /api/camps`
 - `GET/POST /api/rooms`
 - `GET/POST /api/residents`
+- `GET/PATCH/DELETE /api/residents/:id`
 - `GET/POST /api/bookings`
 - `PATCH /api/bookings/:id`
 - `GET /api/stats`

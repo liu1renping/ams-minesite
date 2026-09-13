@@ -31,7 +31,27 @@ export async function POST(request: Request) {
   try {
     await connectDB();
     const body = await request.json();
-    const resident = await Resident.create(body);
+
+    const required = ["employeeId", "firstName", "lastName", "company", "role"] as const;
+    for (const field of required) {
+      if (!body[field] || String(body[field]).trim() === "") {
+        return jsonError(`${field} is required`);
+      }
+    }
+
+    const resident = await Resident.create({
+      employeeId: String(body.employeeId).trim(),
+      firstName: String(body.firstName).trim(),
+      lastName: String(body.lastName).trim(),
+      company: String(body.company).trim(),
+      role: body.role,
+      roster: body.roster ?? "2/1",
+      phone: body.phone ?? "",
+      email: body.email ?? "",
+      emergencyContact: body.emergencyContact ?? "",
+      active: body.active !== false,
+    });
+
     return jsonOk(serialize(resident), { status: 201 });
   } catch (error) {
     console.error(error);
