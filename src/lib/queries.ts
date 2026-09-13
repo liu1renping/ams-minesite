@@ -81,10 +81,12 @@ export async function getBookableRooms() {
 
   const blockedRoomIds = blocked.map((booking) => booking.roomId);
 
-  return Room.find({
-    status: "available",
-    ...(blockedRoomIds.length > 0 ? { _id: { $nin: blockedRoomIds } } : {}),
-  })
+  const filter: Record<string, unknown> = { status: "available" };
+  if (blockedRoomIds.length > 0) {
+    filter._id = { $nin: blockedRoomIds };
+  }
+
+  return Room.find(filter)
     .select("block roomNumber campId")
     .sort({ block: 1, roomNumber: 1 })
     .lean();

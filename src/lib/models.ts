@@ -1,10 +1,14 @@
 import { Schema, models, model, type InferSchemaType, type Model } from "mongoose";
 import {
+  APPLICATION_STATUSES,
+  APPLICATION_TYPES,
   BOOKING_STATUSES,
+  DEPARTMENTS,
   RESIDENT_ROLES,
   ROOM_STATUSES,
   ROOM_TYPES,
   ROSTER_PATTERNS,
+  VISIT_REASONS,
 } from "@/lib/types";
 
 const CampSchema = new Schema(
@@ -76,12 +80,55 @@ const BookingSchema = new Schema(
 
 BookingSchema.index({ roomId: 1, checkIn: 1, checkOut: 1 });
 
+const TravellerSchema = new Schema(
+  {
+    name: { type: String, required: true, trim: true },
+    email: { type: String, required: true, trim: true },
+    phone: { type: String, default: "", trim: true },
+    company: { type: String, required: true, trim: true },
+    photoIdFileName: { type: String, default: "" },
+  },
+  { _id: false },
+);
+
+const VisitorApplicationSchema = new Schema(
+  {
+    applicationType: { type: String, enum: APPLICATION_TYPES, required: true },
+    travellers: {
+      type: [TravellerSchema],
+      required: true,
+      validate: {
+        validator: (value: unknown[]) => Array.isArray(value) && value.length > 0,
+        message: "At least one traveller is required",
+      },
+    },
+    hostName: { type: String, required: true, trim: true },
+    hostTitle: { type: String, default: "", trim: true },
+    department: { type: String, enum: DEPARTMENTS, required: true },
+    reason: { type: String, enum: VISIT_REASONS, required: true },
+    arrival: { type: Date, required: true },
+    departure: { type: Date, required: true },
+    accommodationRequired: { type: Boolean, required: true, default: true },
+    carRego: { type: String, default: "", trim: true },
+    status: {
+      type: String,
+      enum: APPLICATION_STATUSES,
+      default: "submitted",
+      index: true,
+    },
+  },
+  { timestamps: true },
+);
+
 export type CampDocument = InferSchemaType<typeof CampSchema> & { _id: Schema.Types.ObjectId };
 export type RoomDocument = InferSchemaType<typeof RoomSchema> & { _id: Schema.Types.ObjectId };
 export type ResidentDocument = InferSchemaType<typeof ResidentSchema> & {
   _id: Schema.Types.ObjectId;
 };
 export type BookingDocument = InferSchemaType<typeof BookingSchema> & {
+  _id: Schema.Types.ObjectId;
+};
+export type VisitorApplicationDocument = InferSchemaType<typeof VisitorApplicationSchema> & {
   _id: Schema.Types.ObjectId;
 };
 
@@ -96,3 +143,7 @@ export const Resident: Model<ResidentDocument> =
 
 export const Booking: Model<BookingDocument> =
   models.Booking || model<BookingDocument>("Booking", BookingSchema);
+
+export const VisitorApplication: Model<VisitorApplicationDocument> =
+  models.VisitorApplication ||
+  model<VisitorApplicationDocument>("VisitorApplication", VisitorApplicationSchema);

@@ -31,3 +31,34 @@ export type BookingStatus = (typeof BOOKING_STATUSES)[number];
 
 export const ROSTER_PATTERNS = ["2/1", "8/6", "14/7", "permanent", "adhoc"] as const;
 export type RosterPattern = (typeof ROSTER_PATTERNS)[number];
+
+export const APPLICATION_TYPES = ["single", "group"] as const;
+export type ApplicationType = (typeof APPLICATION_TYPES)[number];
+
+export const DEPARTMENTS = [
+  "Operations",
+  "Maintenance",
+  "HSE",
+  "Engineering",
+  "HR",
+  "Finance",
+  "Other",
+] as const;
+
+export const VISIT_REASONS = [
+  "Site Tour",
+  "Meeting",
+  "Audit",
+  "Training",
+  "Contractor Work",
+  "Inspection",
+  "Other",
+] as const;
+
+export const APPLICATION_STATUSES = [
+  "submitted",
+  "approved",
+  "rejected",
+  "allocated",
+] as const;
+export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
