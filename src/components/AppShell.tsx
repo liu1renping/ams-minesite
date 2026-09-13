@@ -25,19 +25,19 @@ export function AppShell({
             </p>
             <Link href="/apply" className="mt-2 inline-flex items-center gap-3">
               <Image
-                src="/icon.png"
-                alt="AMS"
+                src="/vms-icon.png"
+                alt="VMS"
                 width={48}
                 height={48}
                 priority
                 className="h-12 w-12 rounded-xl shadow-[0_0_0_1px_rgba(245,158,11,0.25)]"
               />
               <h1 className="text-3xl font-semibold tracking-tight text-stone-50 sm:text-4xl">
-                AMS
+                VMS
               </h1>
             </Link>
             <p className="mt-2 max-w-xl text-sm text-stone-400">
-              Accommodation Management System — properties, visitors, and allocations.
+              Visitor Management System — visitors, approvals, and property allocations.
             </p>
           </div>
           <nav className="flex flex-wrap gap-1">
